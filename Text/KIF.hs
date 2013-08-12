@@ -32,12 +32,12 @@ instance Markdown KIFTest where
 instance Markdown KIFScenario where
   toMarkdown (KIFScenario name no noOfSteps duration steps) = 
     "## Test Case " ++ show no ++ ": " ++ name ++ "\n"
-      ++ "Performs " ++ show noOfSteps ++ " steps in " ++ show duration ++ "s\n"
+      ++ "### Performs " ++ show noOfSteps ++ " steps in " ++ show duration ++ "s\n"
       ++ unlines (map toMarkdown steps)
 
 instance Markdown KIFStep where
-  toMarkdown (Pass message _) = " * Passed Step: " ++ message
-  toMarkdown (Fail message _ _) = " * Failing Step: " ++ message
+  toMarkdown (Pass message _) = " * **Passed Step:** " ++ message
+  toMarkdown (Fail message _ _) = " * **Failing Step:** " ++ message
 
 
 toJUnit :: HostName -> ClockTime -> KIFTest -> String
