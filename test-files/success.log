@@ -1,0 +1,30 @@
+BEGIN KIF TEST RUN: 2 scenarios
+ 
+---------------------------------------------------
+BEGIN SCENARIO 1/2 (6 steps)
+Check whether the user can log in
+---------------------------------------------------
+PASS (2.10s): Type the text "max.mustermann@mail.de" into the view with accessibility label "E-Mail"
+PASS (0.96s): Type the text "password" into the view with accessibility label "Password"
+PASS (0.52s): Tap view with accessibility label "Login"
+PASS (0.01s): Wait for view with accessibility label "Welcome"
+---------------------------------------------------
+END OF SCENARIO (duration 4.64s)
+---------------------------------------------------
+
+---------------------------------------------------
+BEGIN SCENARIO 2/2 (8 steps)
+Check whether the user can log out
+---------------------------------------------------
+PASS (1.96s): Type the text "max.mustermann@mail.de" into the view with accessibility label "E-Mail"
+PASS (0.95s): Type the text "password" into the view with accessibility label "Password"
+PASS (0.52s): Tap view with accessibility label "Login"
+PASS (0.52s): Tap view with accessibility label "Logout"
+PASS (0.01s): Wait for view with accessibility label "Login View"
+---------------------------------------------------
+END OF SCENARIO (duration 4.51s)
+---------------------------------------------------
+ 
+---------------------------------------------------
+KIF TEST RUN FINISHED: 0 failures (duration 9.17s)
+---------------------------------------------------

@@ -16,17 +16,14 @@ readKIF kifFile = do
 
 pTest :: Parser KIFTest
 pTest = do
-  pPrefix
   string "BEGIN KIF TEST RUN:"
   space
   noScenarios <- pInt
   space
   string "scenarios"
   spaces
-  pPrefix
   scenarios <- replicateM noScenarios pScenario
   pSeparator
-  pPrefix
   string "KIF TEST RUN FINISHED:"
   space
   failures <- pInt
@@ -44,17 +41,15 @@ pScenario = do
   (no, noSteps) <- pBeginScenario
   message <- pLine
   pSeparator
-  steps <- many (try (pPrefix >> (pSuccess <|> pFail)))
+  steps <- many (pSuccess <|> pFail)
   pSeparator
   time <- pEndScenario
   pSeparator
-  pPrefix
   spaces
   return (KIFScenario message no noSteps time steps)
 
 pBeginScenario :: Parser (Int, Int)
 pBeginScenario = do
-  pPrefix
   string "BEGIN SCENARIO "
   no <- scenarioNumber
   steps <- between (char '(') (char ')') (pInt <* space <* string "steps")
@@ -63,42 +58,11 @@ pBeginScenario = do
 
 pEndScenario :: Parser Float
 pEndScenario = do
-  pPrefix
   string "END OF SCENARIO"
   space
   duration <- between (char '(') (char ')') (string "duration" *> space *> pDuration)
   spaces
   return duration
-
-pPrefix :: Parser ()
-pPrefix = do
-  pDate
-  space
-  pTime
-  space
-  manyTill anyChar space
-  spaces
-  return ()
-
-pDate :: Parser ()
-pDate = do
-  replicateM 4 digit
-  char '-'
-  replicateM 2 digit
-  char '-'
-  replicateM 2 digit
-  return ()
-
-pTime :: Parser ()
-pTime = do
-  replicateM 2 digit
-  char ':'
-  replicateM 2 digit
-  char ':'
-  replicateM 2 digit
-  char '.'
-  replicateM 3 digit
-  return ()
 
 pSuccess :: Parser KIFStep
 pSuccess = do
@@ -118,7 +82,6 @@ pFail = do
   char ':'
   space
   message <- pMessage
-  pPrefix
   string "FAILING ERROR:"
   space
   reason <- pMessage
@@ -131,10 +94,10 @@ pMessage = do
   return mes
 
 pLine :: Parser String
-pLine = pPrefix *> pMessage
+pLine = pMessage
 
 pSeparator :: Parser ()
-pSeparator = pPrefix >> string (replicate 51 '-') >> spaces >> return ()
+pSeparator = string (replicate 51 '-') >> spaces >> return ()
 
 scenarioNumber :: Parser Int
 scenarioNumber = pInt <* char '/' <* pInt <* spaces

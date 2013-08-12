@@ -1,0 +1,28 @@
+BEGIN KIF TEST RUN: 2 scenarios
+ 
+---------------------------------------------------
+BEGIN SCENARIO 1/2 (6 steps)
+Check whether the user can log in
+---------------------------------------------------
+PASS (2.10s): Type the text "max.mustermann@mail.de" into the view with accessibility label "E-Mail"
+PASS (0.96s): Type the text "password" into the view with accessibility label "Password"
+PASS (0.52s): Tap view with accessibility label "Login"
+PASS (0.01s): Wait for view with accessibility label "Welcome"
+---------------------------------------------------
+END OF SCENARIO (duration 4.64s)
+---------------------------------------------------
+
+---------------------------------------------------
+BEGIN SCENARIO 2/2 (8 steps)
+Check whether the user can log out
+---------------------------------------------------
+PASS (1.96s): Type the text "max.mustermann@mail.de" into the view with accessibility label "E-Mail"
+FAIL (10.01s): Wait for view with accessibility label \"Fail\"
+FAILING ERROR: Error Domain=KIFTest Code=0 \"The step timed out after 10.00 seconds.\" UserInfo=0x99c8c60 {NSUnderlyingError=0x99909e0 \"Waiting for presence of accessibility element with label \"Fail"\", NSLocalizedDescription=The step timed out after 10.00 seconds.}
+---------------------------------------------------
+END OF SCENARIO (duration 4.51s)
+---------------------------------------------------
+ 
+---------------------------------------------------
+KIF TEST RUN FINISHED: 1 failures (duration 9.17s)
+---------------------------------------------------

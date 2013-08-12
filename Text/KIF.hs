@@ -1,6 +1,8 @@
 module Text.KIF where
 
 import Text.XML.Light
+import System.Time
+import Network.HostName (HostName)
 
 data KIFTest = KIFTest Int       -- no of scenarios
                        Int       -- failures
@@ -38,14 +40,19 @@ instance Markdown KIFStep where
   toMarkdown (Fail message _ _) = " * Failing Step: " ++ message
 
 
-toJUnit :: KIFTest -> String
-toJUnit (KIFTest noScenarios failures duration scenarios) =
-  showTopElement (add_attrs [Attr (unqual "errors") "0",
+toJUnit :: HostName -> ClockTime -> KIFTest -> String
+toJUnit hostName time (KIFTest noScenarios failures duration scenarios) =
+  showTopElement (add_attrs [Attr (unqual "name") "KIFTest",
+                             Attr (unqual "errors") "0",
                              Attr (unqual "failures") (show failures),
                              Attr (unqual "tests") (show noScenarios),
-                             Attr (unqual "time") (show duration)]
+                             Attr (unqual "time") (show duration),
+                             Attr (unqual "timestamp") (show time),
+                             Attr (unqual "hostname") hostName]
                             (node (unqual "testsuite") (map testcase scenarios)))
  where
-  testcase (KIFScenario explanation _ _ duration _) = 
-    add_attrs [Attr (unqual "name") explanation, Attr (unqual "time") (show duration)] 
+  testcase (KIFScenario explanation _ _ sDuration _) = 
+    add_attrs [Attr (unqual "name") explanation,
+               Attr (unqual "classname") "KIFTestScenario",
+               Attr (unqual "time") (show sDuration)] 
               (node (unqual "testcase") ())
