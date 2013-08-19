@@ -21,6 +21,10 @@ data KIFStep = Pass String Float
              | Fail String Float String
   deriving (Eq, Show)
 
+isFail :: KIFStep -> Bool
+isFail (Pass _ _)   = False
+isFail (Fail _ _ _) = True
+
 class Markdown a where
   toMarkdown :: a -> String
 
@@ -51,8 +55,12 @@ toJUnit hostName time (KIFTest noScenarios failures duration scenarios) =
                              Attr (unqual "hostname") hostName]
                             (node (unqual "testsuite") (map testcase scenarios)))
  where
-  testcase (KIFScenario explanation _ _ sDuration _) = 
+  testcase (KIFScenario explanation _ _ sDuration steps) = 
     add_attrs [Attr (unqual "name") explanation,
                Attr (unqual "classname") "KIFTestScenario",
                Attr (unqual "time") (show sDuration)] 
-              (node (unqual "testcase") ())
+              (node (unqual "testcase") (map failure (filter isFail steps)))
+  failure (Fail message _ reason) =
+    add_attrs [Attr (unqual "message") reason,
+               Attr (unqual "type") message]
+              (node (unqual "failure") ())
