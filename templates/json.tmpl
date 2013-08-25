@@ -1,0 +1,33 @@
+
+{
+  "test": {
+    "no-of-scenarios": {{test.noOfScenarios}},
+    "no-of-failures": {{test.noOfFailures}},
+    "duration": {{test.duration}},
+    "scenarios": [
+      {@|scenario <- test.scenarios|
+      "scenario" : {
+        "number": {{scenario.number}},
+        "description": {{scenario.description}},
+        "no-of-steps": {{scenario.noOfSteps}},
+        "duration": {{scenario.duration}},
+        "passed": {{scenario.passed}},
+        "steps": [
+          {@|step <- scenario.steps|
+          {?|step.passed|"pass": {
+            "description": {{step.description}},
+            "duration": {{step.duration}}
+          }
+          ?}
+          {?|step.failed|"fail": {
+            "description": {{step.description}},
+            "reason": {{step.reason}},
+            "duration": {{step.duration}}
+          }
+          ?}
+          @}
+      }
+      @}
+    ]
+  }
+}

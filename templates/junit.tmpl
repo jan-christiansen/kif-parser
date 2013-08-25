@@ -1,0 +1,7 @@
+<?xml version='1.0' ?>
+
+<testsuite name="{{configuration}}" errors="0" failures="{{test.noOfFailures}}" tests="{{test.noOfScenarios}}" time="{{test.duration}}" timestamp="{{timeStamp}}" hostname="{{hostName}}">
+{@|scenario <- test.scenarios|
+<testcase name="{{scenario.description}}" classname="KIFTestScenario" time="{{scenario.duration}}" />
+@}
+</testsuite>

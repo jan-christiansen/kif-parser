@@ -1,0 +1,11 @@
+# Test Report {{configuration}}
+
+{@|scenario <- test.scenarios|
+## Test Case {{scenario.number}}: {{scenario.description}} {?|scenario.passed|(**Passed**)?}{?|scenario.failed|(**Failed**)?}
+Performs {{scenario.noOfSteps}} steps in {{scenario.duration}}
+
+{@|step <- scenario.steps|
+ * {{step.description}} {?|step.passed|(**Passed**)?}{?|step.failed|(**Failed**)?}
+@}
+
+@}
