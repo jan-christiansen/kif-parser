@@ -1,5 +1,5 @@
 name:                     kif-parser
-version:                  0.0.2
+version:                  0.0.3
 cabal-version:            >= 1.6
 stability:                alpha
 description:              Converts KIF (Keep It Functional) iOS integration test logs into other formats, i.e., JUnit XML format 
@@ -29,4 +29,5 @@ executable kif-parser
     twine,
     bytestring,
     old-time,
-    hostname
+    hostname,
+    cmdargs

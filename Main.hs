@@ -1,27 +1,57 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 module Main where
 
-import System.Environment (getArgs)
+import System.Environment (getArgs, withArgs)
 import System.Time
+import Data.Version (showVersion)
 import Network.HostName
 import Text.Twine
 import qualified Data.ByteString as BS
-import Data.Version
+import System.Console.CmdArgs
 import Paths_kif_parser
 
 import Text.KIF
 import Text.KIF.Parser
 
+data Params = Params {
+  output :: OutputType,
+  configuration :: String,
+  file :: FilePath
+}
+  deriving (Show, Data, Typeable)
+
+data OutputType = JUnit
+                | Markdown
+                | JSON
+  deriving (Show, Data, Typeable)
+
+params :: Params
+params = Params {
+  configuration = "" &= help "An optional text that is displayed as the test description",
+  output = JUnit &= argPos 0,
+  file = def &= typ "FILE" &= argPos 1
+}
+
+getparams :: IO Params
+getParams =
+  cmdArgs $ params
+          &= program "kif-parser"
+          &= versionArg [explicit, name "version", name "v", summary summaryText]
+          &= summary summaryText
+          &= details ["Process Keep It Functional log files"]
+
+summaryText :: String
+summaryText = "kif-parser " ++ showVersion version ++ ", Jan Christiansen"
+
 main :: IO ()
 main = do
   args <- getArgs
-  case args of
-       ["--version"] -> putStrLn (showVersion version)
-       ["-o", "junit", filePath] -> readKIF filePath >>= kifToJUnit "" >>= BS.putStr
-       ["-o", "markdown", filePath] -> readKIF filePath >>= kifToMarkdown "" >>= BS.putStr
-       ["-o", "markdown", "-test", config, filePath] ->
-         readKIF filePath >>= kifToMarkdown config >>= BS.putStr
-       ["-o", "json", filePath] -> readKIF filePath >>= kifToJSON "" >>= BS.putStr
-       _ -> putStrLn "Usage : kif-parser -o [junit|markdown|json] <kif-log-file>"
+  params <- (if null args then withArgs ["--help"] else id) getParams
+  case output params of
+       JUnit    -> readKIF (file params) >>= kifToJUnit (configuration params) >>= BS.putStr
+       Markdown -> readKIF (file params) >>= kifToMarkdown (configuration params) >>= BS.putStr
+       JSON     -> readKIF (file params) >>= kifToJSON (configuration params) >>= BS.putStr
 
 kifToJUnit :: String -> KIFTest -> IO BS.ByteString
 kifToJUnit config kifTest = do
