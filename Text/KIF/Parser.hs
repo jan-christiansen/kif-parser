@@ -10,7 +10,7 @@ import Text.KIF
 readKIF :: FilePath -> IO KIFTest
 readKIF kifFile = do
   content <- readFile kifFile
-  case runParser pTest () kifFile content of
+  case parse pTest kifFile content of
        Left err  -> error ("Parser error: " ++ show err)
        Right res -> return res
 
@@ -18,35 +18,35 @@ pTest :: Parser KIFTest
 pTest = do
   string "BEGIN KIF TEST RUN:"
   space
-  noScenarios <- pInt
+  noOfScenarios <- pInt
   space
   string "scenarios"
   spaces
-  scenarios <- replicateM noScenarios pScenario
+  scenarios <- replicateM noOfScenarios pScenario
   pSeparator
   string "KIF TEST RUN FINISHED:"
   space
-  failures <- pInt
+  noOfFailures <- pInt
   space
   string "failures"
   space
   duration <- between (char '(') (char ')') (string "duration" *> space *> pDuration)
   spaces
   pSeparator
-  return (KIFTest noScenarios failures duration scenarios)
+  return (KIFTest noOfScenarios noOfFailures duration scenarios)
 
 pScenario :: Parser KIFScenario
 pScenario = do
   pSeparator
-  (no, noSteps) <- pBeginScenario
-  message <- pLine
+  (no, noOfSteps) <- pBeginScenario
+  description <- pLine
   pSeparator
   steps <- many (pSuccess <|> pFail)
   pSeparator
-  time <- pEndScenario
+  duration <- pEndScenario
   pSeparator
   spaces
-  return (KIFScenario message no noSteps time steps)
+  return (KIFScenario no description noOfSteps duration (all stepPassed steps) steps)
 
 pBeginScenario :: Parser (Int, Int)
 pBeginScenario = do
@@ -78,17 +78,17 @@ pFail :: Parser KIFStep
 pFail = do
   string "FAIL"
   space
-  time <- between (char '(') (char ')') pDuration
+  duration <- between (char '(') (char ')') pDuration
   char ':'
   space
   message <- pMessage
   string "FAILING ERROR:"
   space
   reason <- pMessage
-  return (Fail message time reason)
+  return (Fail message reason duration)
 
 pMessage :: Parser String
-pMessage = do 
+pMessage = do
   mes <- manyTill anyChar newline
   spaces
   return mes

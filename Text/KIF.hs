@@ -1,66 +1,87 @@
+{-# LANGUAGE MultiParamTypeClasses,
+             FlexibleInstances,
+             OverloadedStrings #-}
+
 module Text.KIF where
 
-import Text.XML.Light
-import System.Time
-import Network.HostName (HostName)
+import Numeric
+import Text.Twine
 
-data KIFTest = KIFTest Int       -- no of scenarios
-                       Int       -- failures
-                       Float     -- duration
-                       [KIFScenario]
+data KIFTest = KIFTest {
+  noOfScenarios :: Int,
+  noOfFailures :: Int,
+  testDuration :: Float,
+  scenarios :: [KIFScenario]
+}
   deriving (Eq, Show)
 
-data KIFScenario = KIFScenario String -- explanation
-                               Int    -- no
-                               Int    -- no of steps
-                               Float  -- duration
-                               [KIFStep]
+data KIFScenario = KIFScenario {
+  number :: Int,
+  scenarioDescription :: String,
+  noOfSteps :: Int,
+  scenarioDuration :: Float,
+  scenarioPassed :: Bool,
+  steps :: [KIFStep]
+}
   deriving (Eq, Show)
 
-data KIFStep = Pass String Float
-             | Fail String Float String
+data KIFStep = Pass {
+  stepDescription :: String,
+  stepDuration :: Float
+}
+             | Fail {
+  stepDescription :: String,
+  reason :: String,
+  stepDuration :: Float
+}
   deriving (Eq, Show)
 
-isFail :: KIFStep -> Bool
-isFail (Pass _ _)   = False
-isFail (Fail _ _ _) = True
+stepPassed :: KIFStep -> Bool
+stepPassed (Pass _ _)    = True
+stepPassed (Fail _ _ _ ) = False
 
-class Markdown a where
-  toMarkdown :: a -> String
+mapStrings :: (String -> String) -> KIFTest -> KIFTest
+mapStrings escape (KIFTest noOfScenarios noOfFailures testDuration scenarios) =
+  KIFTest noOfScenarios noOfFailures testDuration (map (mapScenarioStrings escape) scenarios)
 
-instance Markdown KIFTest where
-  toMarkdown (KIFTest _ _ _ scenarios) =
-   "# Test Specification\n"
-     ++ unlines (map toMarkdown scenarios)
+mapScenarioStrings :: (String -> String) -> KIFScenario -> KIFScenario
+mapScenarioStrings escape (KIFScenario number description noOfSteps duration passed steps) =
+  KIFScenario number
+              (escape description)
+              noOfSteps
+              duration
+              passed
+              (map (mapStepStrings escape) steps)
 
-instance Markdown KIFScenario where
-  toMarkdown (KIFScenario name no noOfSteps duration steps) = 
-    "## Test Case " ++ show no ++ ": " ++ name ++ "\n"
-      ++ "### Performs " ++ show noOfSteps ++ " steps in " ++ show duration ++ "s\n"
-      ++ unlines (map toMarkdown steps)
+mapStepStrings :: (String -> String) -> KIFStep -> KIFStep
+mapStepStrings escape (Pass description duration) =
+  Pass (escape description) duration
+mapStepStrings escape (Fail description reason duration) =
+  Fail (escape description) (escape reason) duration
 
-instance Markdown KIFStep where
-  toMarkdown (Pass message _) = " * **Passed Step:** " ++ message
-  toMarkdown (Fail message _ _) = " * **Failing Step:** " ++ message
+instance TemplateInterface IO KIFTest where
+  property "noOfScenarios" = return . bind . noOfScenarios
+  property "noOfFailures"  = return . bind . noOfFailures
+  property "duration"  = return . bind . testDuration
+  property "scenarios"  = return . bind . scenarios
 
+instance TemplateInterface IO KIFScenario where
+  property "number" = return . bind . number
+  property "description" = return . bind . scenarioDescription
+  property "noOfSteps" = return . bind . noOfSteps
+  property "duration" = return . bind . scenarioDuration
+  property "passed" = return . bind . scenarioPassed
+  property "failed" = return . bind . not . scenarioPassed
+  property "steps" = return . bind . steps
 
-toJUnit :: HostName -> ClockTime -> KIFTest -> String
-toJUnit hostName time (KIFTest noScenarios failures duration scenarios) =
-  showTopElement (add_attrs [Attr (unqual "name") "KIFTest",
-                             Attr (unqual "errors") "0",
-                             Attr (unqual "failures") (show failures),
-                             Attr (unqual "tests") (show noScenarios),
-                             Attr (unqual "time") (show duration),
-                             Attr (unqual "timestamp") (show time),
-                             Attr (unqual "hostname") hostName]
-                            (node (unqual "testsuite") (map testcase scenarios)))
- where
-  testcase (KIFScenario explanation _ _ sDuration steps) = 
-    add_attrs [Attr (unqual "name") explanation,
-               Attr (unqual "classname") "KIFTestScenario",
-               Attr (unqual "time") (show sDuration)] 
-              (node (unqual "testcase") (map failure (filter isFail steps)))
-  failure (Fail message _ reason) =
-    add_attrs [Attr (unqual "message") reason,
-               Attr (unqual "type") message]
-              (node (unqual "failure") ())
+instance TemplateInterface IO KIFStep where
+  property "description" = return . bind . stepDescription
+  property "duration" = return . bind . stepDuration
+  property "reason" =
+    \step -> if stepPassed step then error "Failed step has no reason"
+                                else return (bind (reason step))
+  property "passed" = return . bind . stepPassed
+  property "failed" = return . bind . not . stepPassed
+
+instance TemplateInterface IO Float where
+  makeString x = return (showFFloat Nothing x "")
