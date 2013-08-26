@@ -33,7 +33,7 @@ params = Params {
   file = def &= typ "FILE" &= argPos 1
 }
 
-getparams :: IO Params
+getParams :: IO Params
 getParams =
   cmdArgs $ params
           &= program "kif-parser"
@@ -62,7 +62,7 @@ kifToJUnit config kifTest = do
     "timeStamp"     =: show timeStamp
     "hostName"      =: hostName
     "test"          =: mapStrings escapeXML kifTest
-  filePath <- getDataFileName "junit.tmpl"
+  filePath <- getDataFileName "templates/junit.tmpl"
   evalTemplate filePath context
 
 escapeXML :: String -> String
@@ -81,7 +81,7 @@ kifToMarkdown config kifTest = do
   context <- makeContext $ do
     "configuration" =: config
     "test" =: kifTest
-  filePath <- getDataFileName "markdown.tmpl"
+  filePath <- getDataFileName "templates/markdown.tmpl"
   evalTemplate filePath context
 
 kifToJSON :: String -> KIFTest -> IO BS.ByteString
@@ -89,7 +89,7 @@ kifToJSON config kifTest = do
   context <- makeContext $ do
     "configuration" =: escapeJSON config
     "test"          =: mapStrings escapeJSON kifTest
-  filePath <- getDataFileName "json.tmpl"
+  filePath <- getDataFileName "templates/json.tmpl"
   evalTemplate filePath context
 
 escapeJSON :: String -> String

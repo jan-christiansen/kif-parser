@@ -11,7 +11,7 @@
         "description": {{scenario.description}},
         "no-of-steps": {{scenario.noOfSteps}},
         "duration": {{scenario.duration}},
-        "passed": {{scenario.passed}},
+        "passed": {?|scenario.passed|true?}{?|scenario.failed|false?},
         "steps": [
           {@|step <- scenario.steps|
           {?|step.passed|"pass": {
