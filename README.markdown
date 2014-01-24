@@ -1,6 +1,11 @@
 kif-parser
 ==========
 
+:warning: This parser was designed to be used with the original
+implementation of KIF (version 0.0.1). As the reimplementation of KIF
+(version 1.0.0 and higher, also known as KIF-next) does not support
+logging anymore, it does not work with the current version.
+
 A converter that parses the output of KIF (Keep It Functional)
 integration test logs and produces output in other formats, currently,
 JUnit XML format, markdown, and JSON. The JUnit output can be used to
